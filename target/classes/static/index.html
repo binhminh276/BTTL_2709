@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Shop GraphQL Client</title>
+<style>
+:root {
+	--pad: 12px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: system-ui, Arial, sans-serif;
+	margin: 24px;
+	background: #fafafa;
+	color: #222;
+}
+
+.grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+section {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: var(--pad);
+	background: #fff;
+}
+
+h1 {
+	margin-top: 0;
+	font-size: 22px;
+}
+
+h2 {
+	margin: 6px 0 12px;
+	font-size: 16px;
+}
+
+label {
+	display: block;
+	font-size: 13px;
+	color: #444;
+	margin-top: 6px;
+}
+
+input, textarea, select {
+	width: 100%;
+	padding: 7px;
+	margin-top: 4px;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	font-size: 14px;
+}
+
+.row {
+	display: flex;
+	gap: 10px;
+}
+
+.row>* {
+	flex: 1;
+}
+
+button {
+	padding: 7px 12px;
+	border-radius: 6px;
+	border: 1px solid #bbb;
+	background: #f9f9f9;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+button.primary {
+	background: #4a90e2;
+	color: white;
+	border-color: #4a90e2;
+}
+
+button.danger {
+	background: #d9534f;
+	color: white;
+	border-color: #d9534f;
+}
+
+button:disabled {
+	opacity: .5;
+	cursor: not-allowed;
+}
+
+pre {
+	background: #f0f0f0;
+	color: #333;
+	padding: 10px;
+	border-radius: 6px;
+	overflow: auto;
+	max-height: 50vh;
+	font-size: 13px;
+}
+
+small.muted {
+	color: #777;
+	font-size: 12px;
+}
+</style>
+</head>
+<body>
+	<h1>GraphQL Shop Manager</h1>
+
+	<div class="grid">
+		<!-- USERS -->
+		<section>
+			<h2>Users</h2>
+			<div class="row">
+				<div>
+					<label>ID (for Update/Delete) <input id="u_id"
+						placeholder="e.g. 1" />
+					</label>
+				</div>
+				<div>
+					<label>Fullname <input id="u_fullname"
+						placeholder="John Doe" />
+					</label>
+				</div>
+			</div>
+			<label>Email <input id="u_email"
+				placeholder="john@example.com" />
+			</label>
+			<div class="row">
+				<label>Password <input id="u_password" type="password"
+					placeholder="••••••" />
+				</label> <label>Phone <input id="u_phone" placeholder="090..." />
+				</label>
+			</div>
+			<label>Category IDs (comma separated) <input
+				id="u_categories" placeholder="1,2,3" />
+			</label>
+
+			<div class="row" style="margin-top: 10px">
+				<button class="primary" onclick="createUser()">Create</button>
+				<button onclick="updateUser()">Update</button>
+				<button class="danger" onclick="deleteUser()">Delete</button>
+			</div>
+			<div class="row" style="margin-top: 10px">
+				<button onclick="getUsers()">Get All</button>
+				<button onclick="getUserById()">Get By ID</button>
+			</div>
+			<small class="muted">Lưu ý: <code>categoryIds</code> là mảng
+				ID (ví dụ <code>[1,2]</code>). Trong form nhập bằng <em>comma</em>.
+			</small>
+		</section>
+
+		<!-- CATEGORIES -->
+		<section>
+			<h2>Categories</h2>
+			<div class="row">
+				<label>ID (for Update/Delete) <input id="c_id"
+					placeholder="e.g. 1" />
+				</label> <label>Name <input id="c_name" placeholder="Laptop" />
+				</label>
+			</div>
+			<label>Images <input id="c_images" placeholder="laptop.png" />
+			</label>
+
+			<div class="row" style="margin-top: 10px">
+				<button class="primary" onclick="createCategory()">Create</button>
+				<button onclick="updateCategory()">Update</button>
+				<button class="danger" onclick="deleteCategory()">Delete</button>
+			</div>
+			<div class="row" style="margin-top: 10px">
+				<button onclick="getCategories()">Get All</button>
+				<button onclick="getCategoryById()">Get By ID</button>
+			</div>
+		</section>
+
+		<!-- PRODUCTS -->
+		<section>
+			<h2>Products</h2>
+			<div class="row">
+				<label>ID (for Update/Delete) <input id="p_id"
+					placeholder="e.g. 1" />
+				</label> <label>Title <input id="p_title" placeholder="MacBook Air" />
+				</label>
+			</div>
+			<div class="row">
+				<label>Quantity <input id="p_quantity" type="number"
+					placeholder="10" />
+				</label> <label>Price <input id="p_price" type="number" step="0.01"
+					placeholder="1999.99" />
+				</label>
+			</div>
+			<label>Description <input id="p_desc"
+				placeholder="M3, 16GB, 512GB" />
+			</label>
+			<div class="row">
+				<label>User ID <input id="p_userId"
+					placeholder="owner user id" />
+				</label> <label>Category ID <input id="p_categoryId"
+					placeholder="category id" />
+				</label>
+			</div>
+
+			<div class="row" style="margin-top: 10px">
+				<button class="primary" onclick="createProduct()">Create</button>
+				<button onclick="updateProduct()">Update</button>
+				<button class="danger" onclick="deleteProduct()">Delete</button>
+			</div>
+			<div class="row" style="margin-top: 10px">
+				<button onclick="getProducts()">Get All</button>
+				<button onclick="getProductById()">Get By ID</button>
+			</div>
+			<div class="row" style="margin-top: 10px">
+				<button onclick="productsSortedByPrice()">Sorted By Price
+					(ASC)</button>
+				<div class="row">
+					<label>CategoryId (filter) <input id="pb_categoryId"
+						placeholder="e.g. 2" />
+					</label>
+					<button onclick="productsByCategory()">By Category</button>
+				</div>
+			</div>
+		</section>
+	</div>
+
+	<h2>Response</h2>
+	<pre id="output">—</pre>
+
+	<script>
+    // ==== CONFIG ====
+    const endpoint = "http://localhost:8080/graphql";
+
+    // ==== CORE FETCH ====
+    async function runQuery(query, variables = {}) {
+      setBusy(true);
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, variables }),
+        });
+        const data = await res.json();
+        render(data);
+        return data;
+      } catch (e) {
+        render({ error: e?.message || String(e) });
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function render(obj) {
+      document.getElementById("output").textContent = JSON.stringify(obj, null, 2);
+    }
+    function setBusy(b) {
+      for (const btn of document.querySelectorAll("button")) btn.disabled = b;
+    }
+
+    // ==== HELPERS ====
+    const parseNumberOrNull = (v) => {
+      const s = String(v ?? "").trim();
+      if (!s) return null;
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    };
+    const parseFloatOrNull = (v) => {
+      const s = String(v ?? "").trim();
+      if (!s) return null;
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : null;
+    };
+    const parseIdArray = (s) =>
+      String(s ?? "")
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean)
+        .map((x) => Number(x))
+        .filter((x) => Number.isFinite(x));
+
+    // ==== USER ====
+    function createUser() {
+      const input = {
+        fullname: document.getElementById("u_fullname").value,
+        email: document.getElementById("u_email").value,
+        password: document.getElementById("u_password").value || null,
+        phone: document.getElementById("u_phone").value || null,
+        categoryIds: parseIdArray(document.getElementById("u_categories").value),
+      };
+      const q = `mutation($input: UserInput!){
+        createUser(input:$input){ id fullname email phone }
+      }`;
+      runQuery(q, { input });
+    }
+
+    function updateUser() {
+      const id = parseNumberOrNull(document.getElementById("u_id").value);
+      if (id == null) return render({ error: "User id is required for update" });
+      const input = {
+        fullname: document.getElementById("u_fullname").value,
+        email: document.getElementById("u_email").value,
+        password: document.getElementById("u_password").value || null,
+        phone: document.getElementById("u_phone").value || null,
+        categoryIds: parseIdArray(document.getElementById("u_categories").value),
+      };
+      const q = `mutation($id: ID!, $input: UserInput!){
+        updateUser(id:$id, input:$input){ id fullname email phone }
+      }`;
+      runQuery(q, { id, input });
+    }
+
+    function deleteUser() {
+      const id = parseNumberOrNull(document.getElementById("u_id").value);
+      if (id == null) return render({ error: "User id is required for delete" });
+      const q = `mutation($id: ID!){ deleteUser(id:$id) }`;
+      runQuery(q, { id });
+    }
+
+    function getUsers() {
+      const q = `{ users { id fullname email phone } }`;
+      runQuery(q);
+    }
+
+    function getUserById() {
+      const id = parseNumberOrNull(document.getElementById("u_id").value);
+      if (id == null) return render({ error: "User id is required" });
+      const q = `query($id: ID!){ user(id:$id){ id fullname email phone categories{ id name } } }`;
+      runQuery(q, { id });
+    }
+
+    // ==== CATEGORY ====
+    function createCategory() {
+      const input = {
+        name: document.getElementById("c_name").value,
+        images: document.getElementById("c_images").value || null,
+      };
+      const q = `mutation($input: CategoryInput!){
+        createCategory(input:$input){ id name images }
+      }`;
+      runQuery(q, { input });
+    }
+
+    function updateCategory() {
+      const id = parseNumberOrNull(document.getElementById("c_id").value);
+      if (id == null) return render({ error: "Category id is required for update" });
+      const input = {
+        name: document.getElementById("c_name").value,
+        images: document.getElementById("c_images").value || null,
+      };
+      const q = `mutation($id: ID!, $input: CategoryInput!){
+        updateCategory(id:$id, input:$input){ id name images }
+      }`;
+      runQuery(q, { id, input });
+    }
+
+    function deleteCategory() {
+      const id = parseNumberOrNull(document.getElementById("c_id").value);
+      if (id == null) return render({ error: "Category id is required for delete" });
+      const q = `mutation($id: ID!){ deleteCategory(id:$id) }`;
+      runQuery(q, { id });
+    }
+
+    function getCategories() {
+      const q = `{ categories { id name images } }`;
+      runQuery(q);
+    }
+
+    function getCategoryById() {
+      const id = parseNumberOrNull(document.getElementById("c_id").value);
+      if (id == null) return render({ error: "Category id is required" });
+      const q = `query($id: ID!){ category(id:$id){ id name images users{ id fullname } } }`;
+      runQuery(q, { id });
+    }
+
+    // ==== PRODUCT ====
+    function createProduct() {
+      const input = {
+        title: document.getElementById("p_title").value,
+        quantity: parseNumberOrNull(document.getElementById("p_quantity").value),
+        desc: document.getElementById("p_desc").value || null,
+        price: parseFloatOrNull(document.getElementById("p_price").value),
+        userId: parseNumberOrNull(document.getElementById("p_userId").value),
+        categoryId: parseNumberOrNull(document.getElementById("p_categoryId").value),
+      };
+      const q = `mutation($input: ProductInput!){
+        createProduct(input:$input){ id title price quantity category{ id name } user{ id fullname } }
+      }`;
+      runQuery(q, { input });
+    }
+
+    function updateProduct() {
+      const id = parseNumberOrNull(document.getElementById("p_id").value);
+      if (id == null) return render({ error: "Product id is required for update" });
+      const input = {
+        title: document.getElementById("p_title").value,
+        quantity: parseNumberOrNull(document.getElementById("p_quantity").value),
+        desc: document.getElementById("p_desc").value || null,
+        price: parseFloatOrNull(document.getElementById("p_price").value),
+        userId: parseNumberOrNull(document.getElementById("p_userId").value),
+        categoryId: parseNumberOrNull(document.getElementById("p_categoryId").value),
+      };
+      const q = `mutation($id: ID!, $input: ProductInput!){
+        updateProduct(id:$id, input:$input){ id title price quantity category{ id name } user{ id fullname } }
+      }`;
+      runQuery(q, { id, input });
+    }
+
+    function deleteProduct() {
+      const id = parseNumberOrNull(document.getElementById("p_id").value);
+      if (id == null) return render({ error: "Product id is required for delete" });
+      const q = `mutation($id: ID!){ deleteProduct(id:$id) }`;
+      runQuery(q, { id });
+    }
+
+    function getProducts() {
+      const q = `{ products { id title price quantity category{ id name } user{ id fullname } } }`;
+      runQuery(q);
+    }
+
+    function getProductById() {
+      const id = parseNumberOrNull(document.getElementById("p_id").value);
+      if (id == null) return render({ error: "Product id is required" });
+      const q = `query($id: ID!){
+        product(id:$id){ id title price quantity desc category{ id name } user{ id fullname } }
+      }`;
+      runQuery(q, { id });
+    }
+
+    // ==== EXTRA QUERIES ====
+    function productsSortedByPrice() {
+      const q = `{ productsSortedByPrice{ id title price } }`;
+      runQuery(q);
+    }
+
+    function productsByCategory() {
+      const categoryId = parseNumberOrNull(document.getElementById("pb_categoryId").value);
+      if (categoryId == null) return render({ error: "categoryId is required" });
+      const q = `query($categoryId: ID!){
+        productsByCategory(categoryId:$categoryId){ id title price category{ id name } }
+      }`;
+      runQuery(q, { categoryId });
+    }
+  </script>
+</body>
+</html>
